@@ -1,6 +1,6 @@
 import jsonwebtoken from 'jsonwebtoken'
 
-import { User } from '../../models'
+import knex from '../graphql/knex'
 
 async function isLoggedIn(token) {
     if (token.startsWith('Bearer ')) {
@@ -9,7 +9,7 @@ async function isLoggedIn(token) {
 
 	const user = await jsonwebtoken.verify(token, 'ilovescotchyscotch', async (err, verifiedToken) => {
 		if (verifiedToken && verifiedToken.id) {
-            const user = await User.findByPk(verifiedToken.id)
+            const user = await knex('users').where('id', verifiedToken.id)
             
             if (user) return user.dataValues
 

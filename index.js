@@ -6,13 +6,16 @@ import cookieParser from 'cookie-parser'
 import { createServer } from 'http'
 import io from 'socket.io'
 import { Client } from 'pg'
+import path from 'path'
+
+import routes from './src/routes'
+import config from './src/config'
 import schema from './src/graphql/schema'
 import isLoggedIn from './src/utils/jwt'
 
 const app = express()
 const server = createServer(app)
 const socket = io(server)
-
 
 const options = {
     port: process.env.PORT || 4000,
@@ -36,6 +39,11 @@ app.use(bodyParser.json())
 
 app.use(cookieParser())
 
+app.use(express.static(path.join(__dirname, '/public')))
+app.set('views', __dirname + '/public')
+app.engine('html', require('ejs').renderFile)
+app.set('view engine', 'html')
+
 socket.on('connection', function (socket) {
     console.log('hello')
 })
@@ -49,7 +57,8 @@ const apollo = new ApolloServer({
 
         return {
             client,
-            user
+            user,
+            config
         }
     },
     formatError: (err) => {
@@ -66,4 +75,6 @@ apollo.applyMiddleware({ app })
 server.listen(options.port, () => {
     console.log('🚀 ', `Server is running on http://localhost:${options.port}`);
     console.log(`You can access to the GraphiQL at http://localhost:${options.port}${apollo.graphqlPath}`);
+
+    routes(app)
 })

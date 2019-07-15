@@ -6,8 +6,7 @@ import {
  } from 'graphql'
  
 import UsersType from '../types/users.types.gql'
-
-import { User } from '../../../models'
+import knex from '../knex'
 
 export const getUsers = {
     type: List(UsersType),
@@ -15,8 +14,8 @@ export const getUsers = {
     args: {},
     resolve: async (_, args, context, info) => {
         if (!context.user) throw new AuthenticationError('must authenticate')
-
-        return await User.findAll()
+        
+        return await knex.select().table('users')
     }
 }
 
@@ -31,16 +30,16 @@ export const getUser = {
 
         if (!context.user) throw new AuthenticationError('must authenticate')
 
-        return await User.findByPk(id)
+        return await knex('users').where('id', id)
     }
 }
 
-export const getSession = {
+export const getMe = {
     type: UsersType,
     description: 'Get the user session',
     resolve: async (_, args, context, info) => {
         if (!context.user) throw new AuthenticationError('must authenticate')
 
-        return await User.findByPk(context.user.id)
+        return await knex('users').where('id', context.user.id)
     }
 }
